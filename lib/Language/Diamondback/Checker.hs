@@ -43,13 +43,36 @@ wellFormed (Prog ds e) = duplicateFunErrors ds
 -- | `wellFormedD fEnv vEnv d` returns the list of errors for a func-decl `d`
 --------------------------------------------------------------------------------
 wellFormedD :: FunEnv -> BareDecl -> [UserError]
-wellFormedD fEnv (Decl _ xs e _) = error "TBD:wellFormedD"
+wellFormedD fEnv (Decl _ xs e _) = if length l /= 0 
+                                    then [errDupParam (head l)] else []
+                                    ++ wellFormedE fEnv vEnv e
+  where
+    vEnv                         = foldr addEnv emptyEnv xs
+    l                            = concat (dupBy bindId xs)
 
 --------------------------------------------------------------------------------
 -- | `wellFormedE vEnv e` returns the list of errors for an expression `e`
 --------------------------------------------------------------------------------
 wellFormedE :: FunEnv -> Env -> Bare -> [UserError]
-wellFormedE fEnv env e = error "TBD:wellFormedE"
+wellFormedE fEnv env e = go env e
+  where
+  gos env es               = concatMap (go env) es
+  go _   (Boolean {})      = []
+  go _   (Number  n     l) = if n >= maxInt || n < -maxInt then [errLargeNum l n] else []
+  go env (Id      x     l) = unboundVarErrors env x l
+  go env (Prim1 _ e     _) = go  env e
+  go env (Prim2 _ e1 e2 _) = gos env [e1, e2]
+  go env (If   e1 e2 e3 _) = gos env [e1, e2, e3]
+  go env (Let x e1 e2   _) = go env e1
+                           ++ msg
+                           ++ go (addEnv x env) e2
+    where
+      msg = case (lookupEnv (bindId x) env) of
+        Just a   -> [errDupBind x]
+        Nothing  -> []
+  go env (App f es      l) = funErrors fEnv f es l 
+                           ++ gos env es
+
 
 --------------------------------------------------------------------------------
 -- | Error Checkers: In each case, return an empty list if no errors.
@@ -59,6 +82,17 @@ duplicateFunErrors
   = fmap errDupFun
   . concat
   . dupBy (bindId . fName)
+
+unboundVarErrors :: Env -> Id -> SourceSpan -> [UserError] 
+unboundVarErrors env x l  = case (lookupEnv x env) of
+      Just a   -> []
+      Nothing  -> [errUnboundVar l x]
+
+
+funErrors fEnv f es l = case (lookupEnv f fEnv) of
+      Just a   -> if length es == a then []
+                  else [errCallArity l f]
+      Nothing  -> [errUnboundFun l f]
 
 -- | `maxInt` is the largest number you can represent with 31 bits (accounting for sign
 --    and the tag bit.

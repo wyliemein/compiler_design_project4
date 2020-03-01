@@ -1,3 +1,61 @@
-[
-
+[{
+    "name"  : "Incorrect-Arity",
+    "code"   : "def f(x, y):\n  y\nf(1)",
+    "result" : { "failure" : "arity"}
+  },
+  {
+    "name"  : "Duplicate-Params",
+    "code"   : "def f(x, x):\n  x\nf(1,1)",
+    "result" : { "failure" : "duplicate parameter"}
+  },
+  {
+    "name"  : "Duplicate-Functions",
+    "code"   : "def f(x):\n  x\ndef f(x):\n  x\nf(1)",
+    "result" : { "failure" : "duplicate function"}
+  },
+  {
+    "name"  : "Shadow-Bindings",
+    "code"   : "let x=5 in let x=2 in x",
+    "result" : { "failure" : "shadow binding"}
+  },
+  {
+    "name"  : "Variable-Unbound",
+    "code"   : "def f(x):\n  y\nf(1)",
+    "result" : { "failure" : "unbound variable"}
+  },
+  {
+    "name"  : "Function-Undefined",
+    "code"   : "def f(x):\n  x\ng(1)",
+    "result" : { "failure" : "not defined"}
+  },
+  {
+    "name": "Max-Int-Test",
+    "code": "1073741824 ",
+    "result": { "failure": "too large" }
+  },
+  {
+    "name": "Function-Param-Test",
+    "code": "def f(x):\n 0 \nf(1073741824)",
+    "result": { "failure": "too large" }
+  },
+  {
+    "name": "Function-Body-Test",
+    "code": "def f(x):\n y \nf(1)",
+    "result": { "failure": "unbound variable" }
+  },
+  {
+    "name": "Tail-Recursion-Simple-1",
+    "code": "def f(x):\nif x == 0: 0\n else: f(x-1)\n f(100000000)",
+    "result": { "value":"0" }
+  },
+  {
+    "name": "Tail-Recursion-Simple-2",
+    "code": "def f( x, y, z):\nif x == 0: x\n else: f(x-1, y, print(x-y))\n f(3,3,0)",
+    "result": { "value":"0\n-1\n-2\n0\n" }
+  },
+  {
+    "name": "Tail-Recursion-Advanced",
+    "code": "def f(x, y, z):\nif x < z:\n0\nelse:\nf(y, z, x)\nf(1, 0, 1)",
+    "result": { "value": "0" }
+  }
 ]

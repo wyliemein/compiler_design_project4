@@ -31,11 +31,19 @@ postlude = concat
   [ dynError (TypeError TNumber)
   , dynError (TypeError TBoolean)
   , dynError ArithOverflow
-  ]
+  ] ++
+  [ ILabel (BranchDone 0)
+  , ICall  (Builtin "error")]
 
 dynError   :: DynError -> [Instruction]
-dynError e = error "TBD:dynError"
-
+dynError e = [ILabel (DynamicErr e)              
+              , IPush (Const x)
+              , IJmp (BranchDone 0)]
+  where
+    x = case e of
+      TypeError TNumber    -> 0
+      TypeError TBoolean   -> 1
+      ArithOverflow        -> 2
 
 errorCode :: DynError -> Int
 errorCode (TypeError TNumber)  = 0
