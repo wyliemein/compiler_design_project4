@@ -144,17 +144,6 @@ tailcall f a = concatMap move (zip a [0,1..]) ++
   where
     move (arg,n) = [ IMov (Reg EAX)              arg 
                    , IMov (RegOffset (8+n*4) EBP)  (Reg EAX)]
-    
-    
-    
-{-mov eax , [ebp - 8]  # overwrite i with ii
-  mov [ebp + 12], eax  
-  mov eax, [ebp - 4]   # overwrite r with rr
-  mov [ebp + 8], eax   
-  mov esp, ebp         # "free" stack frame (as before `ret`)
-  pop ebp
-  jmp def_loop
--} 
  
 -------------------------------------------------------------------------------
 compilePrim1 :: Ann -> Env -> Prim1 -> IExp -> [Instruction]
